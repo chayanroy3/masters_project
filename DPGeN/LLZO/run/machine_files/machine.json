@@ -1,0 +1,67 @@
+{
+        "api_version": "1.0",
+        "deepmd_version": "2.0.1",
+        "train" :[
+                {
+                        "command": "/nlsasfs/home/aidevmat/sahebb/software/Miniconda3/envs/dpmd_gpu/bin/dp",
+                        "machine": {
+                                "batch_type": "Shell",
+                                "context_type": "local",
+                                "local_root" : "./",
+                                "remote_root": "/nlsasfs/home/aidevmat/sahebb/chayan/remote_root/llzo_try"
+                        },
+                        "resources": {
+                                "number_node": 1,
+                                "cpu_per_node": 4,
+                                "gpu_per_node": 2,
+                                "group_size": 2,
+                                "envs": {
+                                        "OMP_NUM_THREADS": 2,
+                                        "TF_INTRA_OP_PARALLELISM_THREADS": 2,
+                                        "TF_INTER_OP_PARALLELISM_THREADS": 4,
+                                        "DP_AUTO_PARALLELIZATION": 1
+                                }
+                        }
+                }
+        ],
+        "model_devi":[
+                {
+                        "command": "/nlsasfs/home/aidevmat/sahebb/software/Miniconda3/envs/dpmd_gpu/bin/lmp",
+                        "machine": {
+                                "batch_type": "Shell",
+                                "context_type": "local",
+                                "local_root" : "./",
+                                "remote_root": "/nlsasfs/home/aidevmat/sahebb/chayan/remote_root/llzo_try"
+                        },
+                        "resources": {
+                                "number_node": 1,
+                                "cpu_per_node": 4,
+                                "gpu_per_node": 2,
+                                "group_size": 0,
+                                "envs":{"LAMMPS_PLUGIN_PATH":"/nlsasfs/home/aidevmat/sahebb/software/Miniconda3/envs/dpmd_gpu/lib/deepmd_lmp",
+                                        "OMP_NUM_THREADS": 2,
+                                        "TF_INTRA_OP_PARALLELISM_THREADS": 2,
+                                        "TF_INTER_OP_PARALLELISM_THREADS": 4}
+                        }
+                }
+        ],
+        "fp":[
+                {
+                        "command": "/opt/nvidia/hpc_sdk/Linux_x86_64/21.7/comm_libs/mpi/bin/mpirun -n 2 /nlsasfs/home/aidevmat/sahebb/software/vasp/vasp_gpu/v
+asp.6.3.2/bin/vasp6_gpu_std",
+                        "machine": {
+                                "batch_type": "Shell",
+                                "context_type": "local",
+                                "local_root" : "./",
+                                "remote_root": "/nlsasfs/home/aidevmat/sahebb/chayan/remote_root/llzo_try"
+                        },
+                        "resources": {
+                                "number_node": 1,
+                                "cpu_per_node": 4,
+                                "gpu_per_node": 2,
+                                "group_size": 0,
+                                "para_deg":2
+                        }
+                }
+        ]
+}
