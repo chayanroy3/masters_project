@@ -26,7 +26,7 @@ class auto_job:
       file.write('##################\n')
       file.write('bash bash'+str(i)+".sh")
       file.close()
-  def vasp(self,command,parallel_run,root):
+  def bash_script(self,command,parallel_run,root):
     count=0
     self.bash=0
     file=open("bash"+str(bash)+".sh","w")
@@ -49,3 +49,11 @@ class auto_job:
         file.write(command+"\n")
         file.write("cd .. \n")
     file.close()
+a=auto_job(5,[75,75,75,75,6])
+a.init("task")
+vasp_command=""
+lmp_command=""
+dp_command=""
+root=""
+a.bash_script(command,12,root)
+a.job_script(2,8,"")
