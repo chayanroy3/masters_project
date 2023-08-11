@@ -22,13 +22,13 @@ class auto_job:
       file.write('echo "Running $SLURM_NTASKS tasks."\n')
       file.write('echo "Job id is $SLURM_JOBID"\n')
       file.write('echo "Job submission directory is : $SLURM_SUBMIT_DIR"\n')
-      file.write('cd $SLURM_SUBMIT_DIR"\n')
+      file.write('cd $SLURM_SUBMIT_DIR\n')
       file.write('##################\n')
       file.write('bash bash'+str(i)+".sh")
       file.close()
   def vasp(self,command,parallel_run,root):
     count=0
-    bash=0
+    self.bash=0
     file=open("bash"+str(bash)+".sh","w")
     file.write("#!/bin/bash\n")
     for i in self.folders:
@@ -41,7 +41,7 @@ class auto_job:
       else:
         file.close()
         count=1
-        bash+=1
+        self.bash+=1
         file=open("bash"+str(bash)+".sh","w")
         file.write("#!/bin/bash\n")
         file.write("cd "+root+"\n")
