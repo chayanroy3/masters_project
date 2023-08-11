@@ -13,8 +13,8 @@ class auto_job:
     for i in range(self.bash+1):
 
       file=open(str(i)+".sh","w")
-      file.write("#! /bin/bash\n#SBATCH -N 1\n#SBATCH --ntasks-per-node="+cpu+
-                 "\n#SBATCH --gres=gpu:A100-SXM4:"+gpu+"\n#SBATCH --time="+time+
+      file.write("#! /bin/bash\n#SBATCH -N 1\n#SBATCH --ntasks-per-node="+str(cpu)+
+                 "\n#SBATCH --gres=gpu:A100-SXM4:"+str(gpu)+"\n#SBATCH --time="+time+
                  "\n#SBATCH --error=job.%J.err\n#SBATCH --output=job.%J.out\n")
       file.write('echo "Starting at `date`"\n')
       file.write('echo "Running on hosts: $SLURM_NODELIST"\n')
