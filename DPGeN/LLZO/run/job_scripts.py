@@ -29,7 +29,7 @@ class auto_job:
   def bash_script(self,command,parallel_run,root):
     count=0
     self.bash=0
-    file=open("bash"+str(bash)+".sh","w")
+    file=open("bash"+str(self.bash)+".sh","w")
     file.write("#!/bin/bash\n")
     for i in self.folders:
       if count < len(self.folders)//parallel_run:
@@ -42,7 +42,7 @@ class auto_job:
         file.close()
         count=1
         self.bash+=1
-        file=open("bash"+str(bash)+".sh","w")
+        file=open("bash"+str(self.bash)+".sh","w")
         file.write("#!/bin/bash\n")
         file.write("cd "+root+"\n")
         file.write("cd "+i+"\n")
