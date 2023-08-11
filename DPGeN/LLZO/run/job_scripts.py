@@ -49,11 +49,13 @@ class auto_job:
         file.write(command+"\n")
         file.write("cd .. \n")
     file.close()
-a=auto_job(5,[75,75,75,75,6])
+#=========================================================
+a=auto_job(5,[204,204,204,204,4])
 a.init("task")
-vasp_command=""
-lmp_command=""
-dp_command=""
-root=""
-a.bash_script(command,12,root)
-a.job_script(2,8,"")
+vasp_command="/opt/nvidia/hpc_sdk/Linux_x86_64/21.7/comm_libs/mpi/bin/mpirun -n 1 /nlsasfs/home/aidevmat/sahebb/software/vasp/vasp_gpu/vasp.6.3.2_test/bin/vasp_std_gpu"
+lmp_command="lmp -i input.lammps -v restart 0"
+dp_command="/nlsasfs/home/aidevmat/sahebb/software/Miniconda3/envs/dpmd_gpu/bin/dp train input.json "
+root="/nlsasfs/home/aidevmat/sahebb/chayan/remote_root/final/lmp/3ff175d196a7a78d43159cdd7d191270a714d9c0"
+a.bash_script(lmp_command,12,root)
+a.job_script(1,8,"1-00:00:00")
+
