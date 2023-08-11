@@ -9,8 +9,8 @@ class auto_job:
         self.folders.append(prefix+".00"+str(i)+".*00"+str(j))
   def submit_script(self):
     pass
-  def job_script(self,parallel_run,gpu,cpu,time):
-    for i in range(parallel_run):
+  def job_script(self,gpu,cpu,time):
+    for i in range(self.bash+1):
 
       file=open(str(i)+".sh","w")
       file.write("#! /bin/bash\n#SBATCH -N 1\n#SBATCH --ntasks-per-node="+cpu+
