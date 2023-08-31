@@ -1,0 +1,197 @@
+# to calculat diffusion in LLZO
+##=================path_variables====================================
+#======================model=file=paths=============================
+variable model_path string "/nlsasfs/home/aidevmat/sahebb/chayan/LLZO/md_gb"
+variable input_path string "/nlsasfs/home/aidevmat/sahebb/chayan/LLZO/md_gb/sigma3/attm1"
+##==============system variables======================================
+
+variable xlo0 equal 	0.0
+variable xhi0 equal 	22.486696622
+variable ylo0 equal 	0.0
+variable yhi0 equal	18.3603109082
+variable zlo0 equal	0.0
+variable zhi0 equal	63.6019826716
+variable zlo1 equal	6.62521
+variable zhi1 equal	25.175785	
+variable zlo2 equal	38.426195	
+variable zhi2 equal 	56.976775
+
+#======================run & dump variables==========================
+variable templow	equal	300
+variable tstep		equal	0.0005 #0.5fs
+variable thermofrq	equal	20
+variable dumpfrq	equal 	50
+variable temp		equal	600
+variable nvtrun		equal	100
+variable prodrun	equal	100
+##====================initialization====================================
+
+dimension       3
+units   metal
+boundary p p p
+neighbor        2.0 multi
+neigh_modify    every 2 delay 4 check yes
+atom_style      atomic
+
+##==========================input structure data=========================
+
+read_data       ${input_path}/sigma3.lazroli.lammps
+#read_restart	filename
+
+
+##=========================pair style===================================
+
+pair_style   deepmd   ${model_path}/model0.pb ${model_path}/model1.pb  ${model_path}/model2.pb  ${model_path}/model3.pb  out_freq 1000 out_file model_devi.out
+pair_coeff      * *
+
+##======================grouping=======================================
+
+#===============according to the elements==============
+
+group li type 4      	#this is only li atoms
+group rest  type 1 2 3	#all the rest atoms
+
+#==================according to region================
+#region scheme:
+#|gb1|bulk1|gb2|bulk2|gb3|
+#total bulk part as bulk-all, total gb part as gb
+
+region bulk1 block ${xlo0} ${xhi0} ${ylo0} ${yhi0} ${zlo1} ${zhi1}		#boundary is only along z direction
+region bulk2 block ${xlo0} ${xhi0} ${ylo0} ${yhi0} ${zlo2} ${zhi2}  	#boundary is only along z direction
+region	bulk	union	2	bulk1	bulk2
+
+region gb1	block ${xlo0} ${xhi0} ${ylo0} ${yhi0} ${zlo0}  ${zlo1}
+region gb2      block ${xlo0} ${xhi0} ${ylo0} ${yhi0} ${zhi1} ${zlo2}
+region gb3	block ${xlo0} ${xhi0} ${ylo0} ${yhi0} ${zhi2} ${zhi0}
+region gb	union	3 gb1 gb2 gb3
+
+
+group	bulk_1	region	bulk1
+group	bulk_2	region	bulk2
+group	bulk_all	region	bulk
+group	gb	region	gb
+
+#---------------simulation settings-------------------
+#----timestep----(metal unit, time in ps)
+timestep	${tstep}
+#--thermodynamic output frequency--
+thermo ${thermofrq}
+#----thermodynamic output style----
+thermo_style    custom  step pe etotal temp  press vol
+
+#====================================================================
+print "=======================================================\n"
+print "--------------------stage-1----------------------------\n"
+print ".................Minimization..........................\n"
+print "=======================================================\n" 
+
+dump	min	all	atom 100	min.lammpstrj
+
+fix	spring	bulk_all	spring/self 200.0
+
+#minimization settings: stopping-tolerance(energy, force) maxitr maxevl
+#1
+min_style	sd
+minimize	1.0e-8 1.0e-4 500 5000
+#2
+min_style	cg
+minimize	1.0e-8 1.0e-4	500	5000
+#3
+min_style	fire
+minimize	1.0e-8 1.0e-4 500 5000
+
+undump min
+
+write_restart	minimize.restart
+
+#print =============================================================
+print "=========================================================\n"
+print "----------------------stage-2----------------------------\n"
+print "===================increasing temp=======================\n"
+print "------------------nve with langevin----------------------\n"
+print "=========================================================\n"
+ 
+#-----------------reset timestep-----------------------------------
+reset_timestep	0
+
+
+#fix	nve	all nve/limit	0.2 #if crashing
+fix	nve	all nve 	# if not crashing
+
+thermo	5000
+
+dump	heating 	all custom	${dumpfrq}	heating.lammpstrj id type x y z
+
+restart         1000    heating.restart.1 heating.restart.2
+variable	l	loop	2
+variable	i index	30
+label		loop
+variable	t	equal	v_l*$i
+print	"temperature: $t"
+
+fix	lng	all	langevin	$t	$t	10 4653136
+run	20   #0.5ps each loop
+
+unfix	lng
+next	l
+jump	SELF loop
+undump	heating
+unfix	nve
+
+write_restart	heated.${temp}.restart
+
+#===============opening new log file for equl=============
+log	log.equl
+#--------------------------------------------------------
+
+print "===============================================\n"
+print "NVT ${temp} K temperature \n"
+print "===============================================\n"
+
+
+dump nvt	all atom 5000 nvt.600.lammpstrj
+fix nvt1  	all nvt temp ${temp} ${temp} 100.0 	#nvt
+
+run 		${nvtrun}
+
+unfix nvt1  #nvt
+#unfix spring #restarin
+undump	nvt
+
+write_restart	nvt.${temp}.restart
+
+print "=============================================\n"
+print "reduce to 300 using viscous \n"
+print "=============================================\n"
+thermo		100
+fix	nve1	all nve 	# if not crashing
+fix vis 	all viscous 0.1
+run 1000	#has to be changed 
+unfix		nve1
+unfix vis
+
+#=====================unfix spring==================
+unfix spring                         
+thermo	${thermofrq}
+
+
+print "=============================================\n"
+print "----------nvt ${templow} k-------------------\n"
+print "=============================================\n"
+
+dump nvt2	all atom ${dumpfrq} nvt.${templow}.lammpstrj
+fix nvt2	all nvt temp ${templow} ${templow} 100.0 #nvt
+run		${nvtrun}
+undump 		nvt2
+write_restart	nvt.${templow}.restart
+
+print "============================================\n"                       
+print "-----------Production run-------------------\n"
+print "============================================\n"
+
+dump production all custom ${dumpfrq} production.lammpstrj id type xu yu zu
+run ${prodrun}
+unfix nvt2
+undump production
+
+write_restart prod.restart
