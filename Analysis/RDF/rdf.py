@@ -70,13 +70,13 @@ class RDF:
 
 # In[11]:
 
-
-a=RDF(filename="./lmp41.input")
-a.read_data(filename="./lmp41.input")
-a.system_parameters("./lmp41.input")
+filename=""
+a=RDF(filename)
+a.read_data(filename)
+a.system_parameters(filename)
 a.dist_range([1089,1536],[1089,1536])
 r=(a.RDF_cal(0.1,30,1200))
-
+np.save("distance.npy",a.dist)
 
 # In[20]:
 
